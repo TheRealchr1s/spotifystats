@@ -43,7 +43,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
 oauth = OAuth()
-oauth.register(
+kwargs = dict(
     name="spotify",
     client_id=config["spotify_client_id"],
     client_secret=config["spotify_client_secret"],
@@ -52,8 +52,11 @@ oauth.register(
     authorize_url="https://accounts.spotify.com/authorize",
     authorize_params=None,
     api_base_url="https://api.spotify.com/v1/",
-    client_kwargs={"scope": "user-read-email user-read-private user-read-recently-played user-top-read user-library-read"},
+    client_kwargs={"scope": "user-read-email user-read-private user-read-recently-played user-top-read user-library-read"}
 )
+if base_url:
+    kwargs["redirect_uri"] = base_url + "/callback"
+oauth.register(**kwargs)
 
 auth_flow = AuthorizationCodeFlow(
     application_id=config["spotify_client_id"],
