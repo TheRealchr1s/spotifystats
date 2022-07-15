@@ -28,8 +28,14 @@ a {
 }
 
 #content {
-  padding-block: 20px
+  padding-block: 10px;
 }
+
+/* no-overflow {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+} */
 
 .items {
   display: flex;
@@ -42,6 +48,7 @@ a {
 
 .card {
   min-width: 250px;
+  padding-top: 20px;
 }
 
 .art-track-pic {
@@ -49,6 +56,7 @@ a {
   margin-left: auto;
   margin-right: auto;
   border-radius: 15px;
-  height: 200px;
-  width: 200px;
+  max-width: min(80%, 200px);
+  max-height: min(80%, 200px);
+  object-fit: contain;
 }

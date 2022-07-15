@@ -11,20 +11,24 @@
     <title>{% block title %}{% endblock %} - SpotifyStats</title>
 </head>
 <body>
-    <div id="content" class="mx-4 mt-2">
-        <ul id="navpills" class="nav nav-pills nav-fill mb-4">
+    <div id="content" class="mx-4 mt-2 text-center">
+        <ul id="navpills" class="nav nav-pills nav-tabs nav-fill mb-4">
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('index') }}">Home</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('top_tracks') }}">Top Tracks</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('top_artists') }}">Top Artists</a>
             </li>
             {% if not request.session["SPOTIFY_AUTH_TOKEN"] %}
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('login_via_spotify') }}">Log in with Spotify</a>
+                </li>
+            {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('top_tracks') }}">Top Tracks</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('top_artists') }}">Top Artists</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('recommendations') }}">Recommendations</a>
                 </li>
             {% endif %}
         </ul>
