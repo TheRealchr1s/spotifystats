@@ -47,7 +47,7 @@ oauth.register(
     authorize_url="https://accounts.spotify.com/authorize",
     authorize_params=None,
     api_base_url="https://api.spotify.com/v1/",
-    client_kwargs={"scope": "user-read-email user-read-private user-read-recently-played user-top-read user-library-read"}
+    client_kwargs={"scope": "user-read-private user-read-recently-played user-top-read user-library-read"}
 )
 
 auth_flow = AuthorizationCodeFlow(
