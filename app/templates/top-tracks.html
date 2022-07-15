@@ -4,13 +4,18 @@
 <div class="container">
   <div class="row">
     {% for i, track in tracks %}
-      <div class="col pb-2 mb-3 m-2">
-        <img class="art-track-pic my-3" src="{{ track['album']['images'][0]['url'] }}">
-        <p class="names">#{{ i }}: <a href="{{ track['external_urls']['spotify'] }}">{{ track["name"] }} - 
+      <div class="col pb-2 mb-3 m-2 card">
+        <img class="art-track-pic my-3 card-img-top" src="{{ track['album']['images'][0]['url'] }}" loading="lazy">
+        <div class="card-body">
+          <h5 class="card-title">
+            #{{ i }} - <a href="{{ track['external_urls']['spotify'] }}">{{ track["name"] }}</a> {% if track["explicit"] %}🅴{% endif %}
+          </h5>
+          <h6 class="card-subtitle mb-2 text-muted">
             {% for a in track["artists"] %}
                 {{ a["name"] }}{% if not loop.last %}{{", "}}{% endif %}
             {% endfor %}
-        </a></p>
+          </>
+        </div>
       </div>
     {% endfor %}
   </div>

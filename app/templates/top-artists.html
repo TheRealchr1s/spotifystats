@@ -2,13 +2,22 @@
 {% block title %}Top Artists{% endblock %}
 {% block content %}
 <div class="container">
-    <div class="row">
-      {% for i, artist in artists %}
-        <div class="col pb-2 mb-3 m-2">
-          <img class="art-track-pic my-3" src="{{ artist['images'][0]['url'] }}">
-          <p class="names">#{{ i }}: <a href="{{ artist['external_urls']['spotify'] }}">{{ artist["name"] }}</a></p>
+  <div class="row">
+    {% for i, artist in artists %}
+      <div class="col pb-2 mb-3 m-2 card">
+        <img class="art-track-pic my-3 card-img-top" src="{{ artist['images'][0]['url'] }}" loading="lazy">
+        <div class="card-body">
+          <h5 class="card-title">
+            #{{ i }} - <a href="{{ artist['external_urls']['spotify'] }}">{{ artist["name"] }}</a>
+          </h5>
+          <h6 class="card-subtitle mb-2 text-muted">
+            {{ artist["genres"] | join(", ") }}
+          </h6>
+          <p class="card-text">
+            <span class="followcount">{{ artist["followers"]["total"] }}</span> followers
+          </p>
         </div>
-      {% endfor %}
-    </div>
+      </div>
+    {% endfor %}
   </div>
 {% endblock %}
