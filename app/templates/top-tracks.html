@@ -2,7 +2,7 @@
 {% block title %}Top Tracks{% endblock %}
 {% block content %}
     {% for i, track in tracks %}
-        <p>#{{ i }}: <a href="{{ track['href'] }}">{{ track["name"] }} - 
+        <p>#{{ i }}: <a href="{{ track['external_urls']['spotify'] }}">{{ track["name"] }} - 
             {% for a in track["artists"] %}
                 {{ a["name"] }}{% if not loop.last %}{{", "}}{% endif %}
             {% endfor %}
