@@ -30,13 +30,7 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 with open("config.json", "r") as f:
     config = json.load(f)
 
-if base_url := config.get("base_url"):
-    app = FastAPI(
-        servers=[{"url": base_url, "description": "Main server"}],
-        docs_url=None, redoc_url=None, openapi_url=None
-    )
-else:
-    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 app.add_middleware(SessionMiddleware, secret_key=config["secret_key"])
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -54,8 +48,10 @@ kwargs = dict(
     api_base_url="https://api.spotify.com/v1/",
     client_kwargs={"scope": "user-read-email user-read-private user-read-recently-played user-top-read user-library-read"}
 )
-if base_url:
+
+if base_url := config.get("base_url"):
     kwargs["redirect_uri"] = base_url + "/callback"
+
 oauth.register(**kwargs)
 
 auth_flow = AuthorizationCodeFlow(
