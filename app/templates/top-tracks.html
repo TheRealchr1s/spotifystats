@@ -1,13 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Top Tracks{% endblock %}
 {% block content %}
+<div class="container">
+  <div class="row">
     {% for i, track in tracks %}
-        <p>#{{ i }}: <a href="{{ track['external_urls']['spotify'] }}">{{ track["name"] }} - 
+      <div class="col pb-2 mb-3 m-2">
+        <img class="art-track-pic my-3" src="{{ track['album']['images'][0]['url'] }}">
+        <p class="names">#{{ i }}: <a href="{{ track['external_urls']['spotify'] }}">{{ track["name"] }} - 
             {% for a in track["artists"] %}
                 {{ a["name"] }}{% if not loop.last %}{{", "}}{% endif %}
             {% endfor %}
         </a></p>
-        <img class="art-track-pic" src="{{ track['album']['images'][0]['url'] }}">
-        <hr>
+      </div>
     {% endfor %}
+  </div>
+</div>
 {% endblock %}
