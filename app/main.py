@@ -30,7 +30,14 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 with open("config.json", "r") as f:
     config = json.load(f)
 
-app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+if base_url := config.get("base_url"):
+    app = FastAPI(
+        servers=[{"url": base_url, "description": "Main server"}],
+        docs_url=None, redoc_url=None, openapi_url=None
+    )
+else:
+    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+
 app.add_middleware(SessionMiddleware, secret_key=config["secret_key"])
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
