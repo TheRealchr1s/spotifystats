@@ -30,14 +30,8 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 with open("config.json", "r") as f:
     config = json.load(f)
 
-if base_url := config.get("base_url"):
-    app = FastAPI(
-        servers=[{"url": base_url, "description": "Main server"}],
-        docs_url=None, redoc_url=None, openapi_url=None
-    )
-else:
-    app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
-
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+app.base_url = config.get("base_url")
 
 app.add_middleware(SessionMiddleware, secret_key=config["secret_key"])
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -111,7 +105,10 @@ async def index(request: Request):
 
 @app.get("/login")
 async def login_via_spotify(request: Request) -> RedirectResponse:
-    redirect_uri = request.url_for("auth_via_spotify")
+    if app.base_url:
+        redirect_uri = app.base_url + "/callback"
+    else:
+        redirect_uri = request.url_for("auth_via_spotify")
     return await oauth.spotify.authorize_redirect(request, redirect_uri)
 
 @app.get("/callback")
