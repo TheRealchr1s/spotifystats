@@ -5,3 +5,4 @@ authlib
 httpx
 async-spotify
 jinja2
+itsdangerous
