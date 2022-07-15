@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Top Tracks{% endblock %}
+{% block content %}
+    {% for i, track in tracks %}
+        <p>#{{ i }}: <a href="{{ track['href'] }}">{{ track["name"] }} - 
+            {% for a in track["artists"] %}
+                {{ a["name"] }}{% if not loop.last %}{{", "}}{% endif %}
+            {% endfor %}
+        </a></p>
+        <img class="art-track-pic" src="{{ track['album']['images'][0]['url'] }}">
+        <hr>
+    {% endfor %}
+{% endblock %}

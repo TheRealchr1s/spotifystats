@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Spotify Stats{% endblock %}
+{% block content %}
+    <h1>Spotify Thing</h1>
+    <h5>WIP as fxxk</h5>
+    <a href={{ url_for('login_via_spotify') }}>Log in if needed</a><br>
+    <a href={{ url_for('top_tracks') }}>Your Top Songs</a><br>
+    <a href={{ url_for('top_artists') }}>Your Top Artists</a><br>
+{% endblock %}

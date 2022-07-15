@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Top Artists{% endblock %}
+{% block content %}
+    {% for i, artist in artists %}
+        <p>#{{ i }}: {{ artist["name"] }}</p>
+        <img class="art-track-pic" src="{{ artist['images'][0]['url'] }}">
+        <hr>
+    {% endfor %}
+{% endblock %}
