@@ -55,8 +55,15 @@ a {
   display: block;
   margin-left: auto;
   margin-right: auto;
-  border-radius: 15px;
   max-width: min(80%, 200px);
   max-height: min(80%, 200px);
   object-fit: contain;
+}
+
+.spotify-logo {
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
 }
