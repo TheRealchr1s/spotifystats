@@ -53,7 +53,7 @@ oauth.register(
 auth_flow = AuthorizationCodeFlow(
     application_id=config["spotify_client_id"],
     application_secret=config["spotify_client_secret"],
-    scopes=["user-read-email", "user-read-private", "user-read-recently-played", "user-top-read", "user-library-read"],
+    scopes=["user-read-private", "user-read-recently-played", "user-top-read", "user-library-read"],
     redirect_url="placeholder",
 )
 
