@@ -138,5 +138,8 @@ async def top_artists(request: Request, count: int = 50, auth_token: SpotifyAuth
 async def recommendations(request: Request, count: int = 50, auth_token: SpotifyAuthorisationToken = Depends(get_auth_token)):
     """Gets recommendations for the user based on top songs and artists"""
     seed_tracks = ",".join(x["id"] for x in (await spotify.personalization.get_top(content_type="tracks", auth_token=auth_token, limit=5))["items"])
-    recommendations = await spotify.browse.get_recommendation_by_seed(auth_token=auth_token, seed_tracks=seed_tracks, limit=count)
+    if seed_tracks:
+        recommendations = await spotify.browse.get_recommendation_by_seed(auth_token=auth_token, seed_tracks=seed_tracks, limit=count)
+    else:
+        recommendations = {"tracks": []}
     return templates.TemplateResponse("recommendations.html", {"request": request, "recommendations": recommendations["tracks"]})

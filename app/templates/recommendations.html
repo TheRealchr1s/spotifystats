@@ -24,5 +24,8 @@
         </div>
       </div>
     {% endfor %}
+    {% if not tracks %}
+      <div class="col pb-2 mb-3 m-2 card text-center"><h3>No results.</h3></div>
+    {% endif %}
   </div>
 {% endblock %}
