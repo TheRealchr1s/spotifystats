@@ -126,13 +126,13 @@ async def auth_via_spotify(request: Request) -> RedirectResponse:
 async def top_tracks(request: Request, count: int = 50, auth_token: SpotifyAuthorisationToken = Depends(get_auth_token)):
     """Returns the user's top tracks"""
     tracks = await spotify.personalization.get_top(content_type="tracks", auth_token=auth_token, limit=count)
-    return templates.TemplateResponse("top-tracks.html", {"request": request, "tracks": enumerate(tracks["items"], start=1)})
+    return templates.TemplateResponse("top-tracks.html", {"request": request, "tracks": tracks["items"]})
 
 @app.get("/top/artists")
 async def top_artists(request: Request, count: int = 50, auth_token: SpotifyAuthorisationToken = Depends(get_auth_token)):
     """Returns the user's top artists"""
     artists = await spotify.personalization.get_top(content_type="artists", auth_token=auth_token, limit=count)
-    return templates.TemplateResponse("top-artists.html", {"request": request, "artists": enumerate(artists["items"], start=1)})
+    return templates.TemplateResponse("top-artists.html", {"request": request, "artists": artists["items"]})
 
 @app.get("/recommendations")
 async def recommendations(request: Request, count: int = 50, auth_token: SpotifyAuthorisationToken = Depends(get_auth_token)):
