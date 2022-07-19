@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Top Genres{% endblock %}
+{% block head_extra %}
+{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col pb-2 mb-3 m-2 card text-center">
+      <div class="chart mb-3">
+          <h1>Your Top Genres</h1>
+          <div class="dropdown">
+            <button type="button" class="btn btn-primary dropdown-toggle mb-3" data-bs-toggle="dropdown" aria-expanded="false">
+              Sample size
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item sample" href="?count=5">Small</a></li>
+              <li><a class="dropdown-item sample" href="?count=10">Medium</a></li>
+              <li><a class="dropdown-item sample" href="?count=25">Large</a></li>
+              <li><a class="dropdown-item sample" href="?count=50">Maximum</a></li>
+            </ul>
+          </div>
+
+          <canvas id="myChart"></canvas>
+          {% if genre_names|length == 0 %}
+            <div class="col pb-2 mb-3 m-2 card text-center"><h3>No results.</h3></div>
+          {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const labels = {{ genre_names | tojson }};
+
+  const colors = [];
+
+
+  function getRandomColor() {
+    let color = "#";
+    for (let i = 0; i < 3; i++)
+      color += ("0" + Math.floor(Math.random() * Math.pow(16, 2) / 2).toString(16)).slice(-2);
+    return color;
+  }
+
+  labels.forEach(function(label) {
+    colors.push(getRandomColor());
+  });
+
+  const data = {
+    labels: labels,
+    datasets: [{
+      label: "Your Top Genres",
+      backgroundColor: ["#e83079",
+      "#dd3339",
+      "#e2501f",
+      "#ea9521",
+      "#dfd331",
+      "#aad93c",
+      "#62d446",
+      "#45de7e",
+      "#6c71f1",
+      "#4347bd",
+      "#5d52e7",
+      "#30198e",
+      "#4525bc",
+      "#943ae2",
+      "#863abe",
+      "#b463e7",
+      "#681b98",
+      "#d245e4",
+      "#ae2da5",
+      "#e54cc2"],
+      data: {{ frequencies | tojson }},
+      hoverOffset: 4,
+    }]
+  };
+
+  const config = {
+    type: 'pie',
+    data: data,
+    options: {
+      tooltips: {
+        callbacks: {
+          title: function(tooltipItem, data) {
+            return data['labels'][tooltipItem[0]['index']];
+          },
+          label: function(tooltipItem, data) {
+            return data['datasets'][0]['data'][tooltipItem['index']];
+          },
+          afterLabel: function(tooltipItem, data) {
+            var dataset = data['datasets'][0];
+            var percent = Math.round((dataset['data'][tooltipItem['index']] / dataset["_meta"][0]['total']) * 100)
+            return '(' + percent + '%)';
+          }
+        },
+        backgroundColor: '#FFF',
+        titleFontSize: 16,
+        titleFontColor: '#0066ff',
+        bodyFontColor: '#000',
+        bodyFontSize: 14,
+        displayColors: false
+      }
+    }
+  };
+
+  const myChart = new Chart(
+    document.getElementById('myChart'),
+    config
+  );
+</script>
+{% endblock %}

@@ -1,6 +1,8 @@
 import json
 import os
 import time
+from collections import Counter
+import itertools
 
 import sentry_sdk
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
@@ -133,6 +135,13 @@ async def top_artists(request: Request, count: int = 50, auth_token: SpotifyAuth
     """Returns the user's top artists"""
     artists = await spotify.personalization.get_top(content_type="artists", auth_token=auth_token, limit=count)
     return templates.TemplateResponse("top-artists.html", {"request": request, "artists": artists["items"]})
+
+@app.get("/top/genres")
+async def top_genres(request: Request, count: int = 25, auth_token: SpotifyAuthorisationToken = Depends(get_auth_token)):
+    """Returns the user's top genres"""
+    res = await spotify.personalization.get_top(content_type="artists", auth_token=auth_token, limit=count)
+    genre_names, frequencies = zip(*Counter(itertools.chain.from_iterable(artist["genres"] for artist in res["items"])).most_common(count))
+    return templates.TemplateResponse("top-genres.html", {"request": request, "genre_names": genre_names, "frequencies": frequencies})
 
 @app.get("/recommendations")
 async def recommendations(request: Request, count: int = 50, auth_token: SpotifyAuthorisationToken = Depends(get_auth_token)):
