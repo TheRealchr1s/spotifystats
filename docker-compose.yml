@@ -7,7 +7,7 @@ networks:
 services:
   web:
     build: .
-    command: "uvicorn app.main:app --host 0.0.0.0 --port 7777 --proxy-headers"
+    command: "uvicorn app.main:app --host 0.0.0.0 --port 7777 --proxy-headers --forwarded-allow-ips='*'"
     restart: unless-stopped
     depends_on:
       - redis
