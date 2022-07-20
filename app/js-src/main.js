@@ -18,3 +18,31 @@ for (let i = 0; i < durationItems.length; i++) {
     }
     durationItems[i].innerText = full;
 }
+
+let sampleItems = document.getElementsByClassName("sample");
+const setItem = (index) => {
+    sampleItems = Array.prototype.slice.call( sampleItems );
+    let elem = sampleItems[index];
+    sampleItems = document.getElementsByClassName("sample");
+    for (let i = 0; i < sampleItems.length; i++) {
+        sampleItems[i].className = "dropdown-item sample";
+    }
+    elem.className = "dropdown-item sample active";
+}
+for (let i = 0; i < sampleItems.length; i++) {
+    let currentlySelected = sampleItems[0];
+    switch ((new URLSearchParams(location.search)).get("count")) {
+        case "5":
+            setItem(0);
+            break;
+        case "10":
+            setItem(1);
+            break;
+        case "25":
+            setItem(2);
+            break;
+        case "50":
+            setItem(3);
+            break;
+    }
+}
