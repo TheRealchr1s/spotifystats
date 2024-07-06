@@ -1,25 +1,21 @@
+import itertools
 import json
 import os
 import time
 from collections import Counter
-import itertools
 
 import sentry_sdk
-from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
-
 from async_spotify import SpotifyApiClient
 from async_spotify.authentification import SpotifyAuthorisationToken
-from async_spotify.authentification.authorization_flows import \
-    AuthorizationCodeFlow
+from async_spotify.authentification.authorization_flows import AuthorizationCodeFlow
 from async_spotify.spotify_errors import TokenExpired
-
 from authlib.integrations.base_client.errors import MismatchingStateError
 from authlib.integrations.starlette_client import OAuth
-
-from fastapi import FastAPI, HTTPException, Request, Response, status, Depends
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.models import *
@@ -29,8 +25,18 @@ os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 # from .routers import trump, jokes
 
 # load config
-with open("config.json", "r") as f:
+with open("config.json", "r", encoding="utf-8") as f:
     config = json.load(f)
+
+# Initialize Sentry if a DSN is provided
+if sentry_dsn := config.get("sentry_dsn"):
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        traces_sample_rate=config.get("sentry_traces_sample_rate", 1.0),
+        profiles_sample_rate=config.get("sentry_profiles_sample_rate", 1.0),
+        release=config.get("version", "1.0.0"),
+        environment=config.get("sentry_environment", "development"),
+    )
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 app.base_url = config.get("base_url")
@@ -49,28 +55,25 @@ oauth.register(
     authorize_url="https://accounts.spotify.com/authorize",
     authorize_params=None,
     api_base_url="https://api.spotify.com/v1/",
-    client_kwargs={"scope": "user-read-private user-read-recently-played user-top-read user-library-read"}
+    client_kwargs={
+        "scope": "user-read-private user-read-recently-played user-top-read user-library-read"
+    },
 )
 
 auth_flow = AuthorizationCodeFlow(
     application_id=config["spotify_client_id"],
     application_secret=config["spotify_client_secret"],
-    scopes=["user-read-private", "user-read-recently-played", "user-top-read", "user-library-read"],
+    scopes=[
+        "user-read-private",
+        "user-read-recently-played",
+        "user-top-read",
+        "user-library-read",
+    ],
     redirect_url="placeholder",
 )
 
 spotify = SpotifyApiClient(auth_flow)
 
-# for router_module in (trump, jokes):
-#     app.include_router(router_module.router)
-
-if sentry_dsn := config.get("sentry_dsn"):
-    sentry_sdk.init(
-        dsn=sentry_dsn,
-        traces_sample_rate=1.0,
-        send_default_pii=True
-    )
-    app.add_middleware(SentryAsgiMiddleware)
 
 async def get_auth_token(request: Request):
     try:
@@ -78,18 +81,23 @@ async def get_auth_token(request: Request):
     except KeyError:
         raise SpotifyNotAuthorizedError
 
+
 @app.on_event("startup")
 async def startup():
     await spotify.create_new_client()
+
 
 @app.on_event("shutdown")
 async def shutdown():
     await spotify.close_client()
 
+
 @app.exception_handler(TokenExpired)
 async def token_expired(request: Request, exc: TokenExpired):
     try:
-        auth_token = await spotify.refresh_token(auth_token=SpotifyAuthorisationToken(*request.session["SPOTIFY_AUTH_TOKEN"]))
+        auth_token = await spotify.refresh_token(
+            auth_token=SpotifyAuthorisationToken(*request.session["SPOTIFY_AUTH_TOKEN"])
+        )
         request.session["SPOTIFY_AUTH_TOKEN"] = tuple(auth_token)
     except:
         url = app.url_path_for("login_via_spotify")
@@ -97,13 +105,16 @@ async def token_expired(request: Request, exc: TokenExpired):
         url = request.url
     return RedirectResponse(url=url)
 
+
 @app.exception_handler(SpotifyNotAuthorizedError)
 async def spotify_not_authorized(request: Request, exc: SpotifyNotAuthorizedError):
     return RedirectResponse(url=app.url_path_for("login_via_spotify"))
 
+
 @app.get("/")
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
 
 @app.get("/login")
 async def login_via_spotify(request: Request) -> RedirectResponse:
@@ -113,42 +124,98 @@ async def login_via_spotify(request: Request) -> RedirectResponse:
         redirect_uri = request.url_for("auth_via_spotify")
     return await oauth.spotify.authorize_redirect(request, redirect_uri)
 
+
 @app.get("/callback")
 async def auth_via_spotify(request: Request) -> RedirectResponse:
     """Uses newly-received token to finalize OAuth2 cred flow"""
     try:
-        request.session["SPOTIFY_OAUTH2"] = state = await oauth.spotify.authorize_access_token(request)
-        request.session["SPOTIFY_AUTH_TOKEN"] = [state["refresh_token"], int(time.time()), state["access_token"]]
+        request.session["SPOTIFY_OAUTH2"] = state = (
+            await oauth.spotify.authorize_access_token(request)
+        )
+        request.session["SPOTIFY_AUTH_TOKEN"] = [
+            state["refresh_token"],
+            int(time.time()),
+            state["access_token"],
+        ]
     except MismatchingStateError:
         return RedirectResponse(url=app.url_path_for("login_via_spotify"))
     else:
         return RedirectResponse(url=app.url_path_for("index"))
 
+
 @app.get("/top/tracks")
-async def top_tracks(request: Request, count: int = 50, auth_token: SpotifyAuthorisationToken = Depends(get_auth_token)):
+async def top_tracks(
+    request: Request,
+    count: int = 50,
+    auth_token: SpotifyAuthorisationToken = Depends(get_auth_token),
+):
     """Returns the user's top tracks"""
-    tracks = await spotify.personalization.get_top(content_type="tracks", auth_token=auth_token, limit=count)
-    return templates.TemplateResponse("top-tracks.html", {"request": request, "tracks": tracks["items"]})
+    tracks = await spotify.personalization.get_top(
+        content_type="tracks", auth_token=auth_token, limit=count
+    )
+    return templates.TemplateResponse(
+        "top-tracks.html", {"request": request, "tracks": tracks["items"]}
+    )
+
 
 @app.get("/top/artists")
-async def top_artists(request: Request, count: int = 50, auth_token: SpotifyAuthorisationToken = Depends(get_auth_token)):
+async def top_artists(
+    request: Request,
+    count: int = 50,
+    auth_token: SpotifyAuthorisationToken = Depends(get_auth_token),
+):
     """Returns the user's top artists"""
-    artists = await spotify.personalization.get_top(content_type="artists", auth_token=auth_token, limit=count)
-    return templates.TemplateResponse("top-artists.html", {"request": request, "artists": artists["items"]})
+    artists = await spotify.personalization.get_top(
+        content_type="artists", auth_token=auth_token, limit=count
+    )
+    return templates.TemplateResponse(
+        "top-artists.html", {"request": request, "artists": artists["items"]}
+    )
+
 
 @app.get("/top/genres")
-async def top_genres(request: Request, count: int = 25, auth_token: SpotifyAuthorisationToken = Depends(get_auth_token)):
+async def top_genres(
+    request: Request,
+    count: int = 25,
+    auth_token: SpotifyAuthorisationToken = Depends(get_auth_token),
+):
     """Returns the user's top genres"""
-    res = await spotify.personalization.get_top(content_type="artists", auth_token=auth_token, limit=count)
-    genre_names, frequencies = zip(*Counter(itertools.chain.from_iterable(artist["genres"] for artist in res["items"])).most_common(count))
-    return templates.TemplateResponse("top-genres.html", {"request": request, "genre_names": genre_names, "frequencies": frequencies})
+    res = await spotify.personalization.get_top(
+        content_type="artists", auth_token=auth_token, limit=count
+    )
+    genre_names, frequencies = zip(
+        *Counter(
+            itertools.chain.from_iterable(artist["genres"] for artist in res["items"])
+        ).most_common(count)
+    )
+    return templates.TemplateResponse(
+        "top-genres.html",
+        {"request": request, "genre_names": genre_names, "frequencies": frequencies},
+    )
+
 
 @app.get("/recommendations")
-async def recommendations(request: Request, count: int = 50, auth_token: SpotifyAuthorisationToken = Depends(get_auth_token)):
+async def recommendations(
+    request: Request,
+    count: int = 50,
+    auth_token: SpotifyAuthorisationToken = Depends(get_auth_token),
+):
     """Gets recommendations for the user based on top songs and artists"""
-    seed_tracks = ",".join(x["id"] for x in (await spotify.personalization.get_top(content_type="tracks", auth_token=auth_token, limit=5))["items"])
+    seed_tracks = ",".join(
+        x["id"]
+        for x in (
+            await spotify.personalization.get_top(
+                content_type="tracks", auth_token=auth_token, limit=5
+            )
+        )["items"]
+    )
     if seed_tracks:
-        recommendations = await spotify.browse.get_recommendation_by_seed(auth_token=auth_token, seed_tracks=seed_tracks, limit=count)
+        recommendations = await spotify.browse.get_recommendation_by_seed(
+            auth_token=auth_token, seed_tracks=seed_tracks, limit=count
+        )
     else:
         recommendations = {"tracks": []}
-    return templates.TemplateResponse("recommendations.html", {"request": request, "recommendations": recommendations["tracks"]})
+    return templates.TemplateResponse(
+        "recommendations.html",
+        {"request": request, "recommendations": recommendations["tracks"]},
+    )

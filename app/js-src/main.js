@@ -12,8 +12,8 @@ for (let i = 0; i < followItems.length; i++) {
 
 let durationItems = document.getElementsByClassName("duration");
 for (let i = 0; i < durationItems.length; i++) {
-    let full = new Date(parseInt(durationItems[i].innerText)).toISOString().slice(11,19);
-    if (full.slice(0,2) == "00") {
+    let full = new Date(parseInt(durationItems[i].innerText)).toISOString().slice(11, 19);
+    if (full.slice(0, 2) == "00") {
         full = full.slice(3);
     }
     durationItems[i].innerText = full;
@@ -21,7 +21,7 @@ for (let i = 0; i < durationItems.length; i++) {
 
 let sampleItems = document.getElementsByClassName("sample");
 const setItem = (index) => {
-    sampleItems = Array.prototype.slice.call( sampleItems );
+    sampleItems = Array.prototype.slice.call(sampleItems);
     let elem = sampleItems[index];
     sampleItems = document.getElementsByClassName("sample");
     for (let i = 0; i < sampleItems.length; i++) {

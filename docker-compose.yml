@@ -1,23 +1,13 @@
-version: '3.9'
-
-networks:
-  spotifystats:
-    external: false
-
 services:
   web:
     build: .
-    command: "uvicorn app.main:app --host 0.0.0.0 --port 7777 --proxy-headers --forwarded-allow-ips='*'"
+    command: "uvicorn app.main:app --host 0.0.0.0 --port 9013 --proxy-headers --forwarded-allow-ips='*'"
     restart: unless-stopped
     depends_on:
       - redis
     ports:
-      - 7777:7777
-    networks:
-      - spotifystats
-  
+      - 9013:9013
+
   redis:
     image: redis
     restart: unless-stopped
-    networks:
-      - spotifystats
